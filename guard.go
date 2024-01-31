@@ -13,7 +13,7 @@ var _ Jobnik = &guard{}
 type guard struct {
 }
 
-func (grd *guard) InitOnce(name string, jsc string) error { return nil }
+func (grd *guard) InitOnce(jsc string) error { return nil }
 
 func (grd *guard) Process(cncl context.Context, job Job) (JobStatus, error) {
 	return JobStatus{}, fmt.Errorf("Process is not implemented yet")

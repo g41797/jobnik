@@ -17,10 +17,8 @@ import "context"
 // BTW - You can use it on it's own
 type Jobnik interface {
 	// Initiation of Jobnik - once for lifecycle.
-	// name (may be empty) - identification of Jobnik, allows to use the same code
-	// for processing of different types of jobs.
 	// jsc (may be empty) - JSON string with configuration.
-	InitOnce(name string, jsc string) error
+	InitOnce(jsc string) error
 
 	// Stop processing, clean resources - once for lifecycle.
 	FinishOnce() error
@@ -28,8 +26,8 @@ type Jobnik interface {
 	// Process Job
 	// cncl used for external cancel of running job.
 	// how to use it see https://www.sohamkamani.com/golang/context/
-	// error is returned only for wrong Job information, e.g. failure of
-	// de-marshalling of JSON job payload, content of JobStatus does not matter.
+	// error is returned only for wrong arguments, e.g. failure of
+	// de-marshalling of JSON job payload, for this case content of returned JobStatus does not matter.
 	// Failure or Cancel are valid states. It should be reflected in JobStatus.
 	// error for these cases should be nil
 	Process(cncl context.Context, job Job) (JobStatus, error)
