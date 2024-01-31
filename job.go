@@ -30,10 +30,6 @@ const (
 	Failed JobState = iota + 7
 )
 
-func (jst JobState) String() string {
-	return []string{"Unknown", "Created", "Submitted", "Received", "InProcess", "Cancelled", "Finished", "Failed"}[jst]
-}
-
 type JobStatus struct {
 	UID   string
 	State JobState
@@ -48,7 +44,7 @@ type JobAttribute struct {
 	Value string
 }
 
-// Pay attention - you cannot get JobStatus direct from
+// Pay attention - you cannot get JobStatus directly from
 // Job itself
 type Job interface {
 	// Unique Job ID
@@ -62,4 +58,27 @@ type Job interface {
 
 	// JSON string - may be empty
 	Payload() string
+}
+
+func NewJob(id string, name string, atrbs []JobAttribute, payload string) Job {
+	return &defaultJob{id, name, atrbs, payload}
+}
+
+type defaultJob struct {
+	id      string
+	name    string
+	atrbs   []JobAttribute
+	payload string
+}
+
+func (job *defaultJob) UID() string { return job.id }
+
+func (job *defaultJob) Name() string { return job.name }
+
+func (job *defaultJob) Attributes() []JobAttribute { return job.atrbs }
+
+func (job *defaultJob) Payload() string { return job.payload }
+
+func (jst JobState) String() string {
+	return []string{"Unknown", "Created", "Submitted", "Received", "InProcess", "Cancelled", "Finished", "Failed"}[jst]
 }
