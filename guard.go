@@ -32,6 +32,24 @@ type guard struct {
 	jbnk  Jobnik
 }
 
+func (grd *guard) tryCreate(name string) (Jobnik, error) {
+
+	grd.name = name
+
+	fact, exists := factories.Load(strings.ToLower(name))
+	if !exists {
+		return nil, fmt.Errorf("factory for %s does not exist", grd.name)
+	}
+
+	if jbnk, err := fact.(JobnikFactory)(); err == nil {
+		grd.jbnk = jbnk
+		grd.state = initallowed
+		return grd, nil
+	} else {
+		return nil, err
+	}
+}
+
 func (grd *guard) InitOnce(jsc string) error {
 	if grd == nil {
 		return fmt.Errorf("InitOnce nil guard")
@@ -97,23 +115,6 @@ func (grd *guard) FinishOnce() error {
 	grd.state = nothingallowed
 
 	return err
-}
-
-func (grd *guard) tryCreate(name string) (Jobnik, error) {
-
-	grd.name = name
-
-	fact, exists := factories.Load(strings.ToLower(name))
-	if !exists {
-		return nil, fmt.Errorf("factory for %s does not exist", grd.name)
-	}
-
-	if jbnk, err := fact.(JobnikFactory)(); err == nil {
-		grd.jbnk = jbnk
-		return grd, nil
-	} else {
-		return nil, err
-	}
 }
 
 func storeFactory(name string, fact JobnikFactory) {

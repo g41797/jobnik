@@ -3,6 +3,8 @@
 
 package jobnik
 
+import "fmt"
+
 type JobState int
 
 const (
@@ -39,6 +41,13 @@ type JobStatus struct {
 	Addendum string
 }
 
+func (jst *JobStatus) String() string {
+	if len(jst.Addendum) == 0 {
+		return fmt.Sprintf(" ID %s State %s ", jst.UID, jst.State.String())
+	}
+	return fmt.Sprintf(" ID %s State %s Additional information %s", jst.UID, jst.State.String(), jst.Addendum)
+}
+
 type JobAttribute struct {
 	Name  string
 	Value string
@@ -58,10 +67,18 @@ type Job interface {
 
 	// JSON string - may be empty
 	Payload() string
+
+	// For trace/log
+	String() string
 }
 
-func NewJob(id string, name string, atrbs []JobAttribute, payload string) Job {
-	return &defaultJob{id, name, atrbs, payload}
+// NewJob returns error for empty id and/or name
+// payload (as a rule JSON string) - is not validated
+func NewJob(id string, name string, atrbs []JobAttribute, payload string) (Job, error) {
+	if len(id) == 0 || len(name) == 0 {
+		return nil, fmt.Errorf("wrong id or name")
+	}
+	return &defaultJob{id, name, atrbs, payload}, nil
 }
 
 type defaultJob struct {
@@ -78,6 +95,10 @@ func (job *defaultJob) Name() string { return job.name }
 func (job *defaultJob) Attributes() []JobAttribute { return job.atrbs }
 
 func (job *defaultJob) Payload() string { return job.payload }
+
+func (job *defaultJob) String() string {
+	return fmt.Sprintf("Job ID %s Handler %s ", job.id, job.name)
+}
 
 func (jst JobState) String() string {
 	return []string{"Unknown", "Created", "Submitted", "Received", "InProcess", "Cancelled", "Finished", "Failed"}[jst]
