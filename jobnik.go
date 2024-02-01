@@ -3,7 +3,10 @@
 
 package jobnik
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 // Flow of job processing:
 //	Submitter: Creates Job and submits it to Queue
@@ -12,7 +15,7 @@ import "context"
 //	Worker: Updates Queue with JobStatus
 //	Anyone: Listens to Queue, receives JobStatus
 
-// Jobnik is small part (plugin) of whole flow. It responsible for JobProcessing, that's all.
+// Jobnik is small part (plugin) of whole flow. It's responsible for JobProcessing, that's all.
 // But placement of Jobnik to own package  allows convenient development.
 // BTW - You can use it on it's own
 type Jobnik interface {
@@ -31,4 +34,36 @@ type Jobnik interface {
 	// Failure or Cancel are valid states. It should be reflected in JobStatus.
 	// error for these cases should be nil
 	Process(cncl context.Context, job Job) (JobStatus, error)
+}
+
+// Don't create jobnik direct and don't export it from the package.
+// Use NewJobnik function.
+// name should be unique within process.
+// name is non case sensitive: "CopyFiles" and "COPYFILES" are the same name
+// (actually "copyfiles")
+func NewJobnik(name string) (Jobnik, error) {
+
+	if len(name) == 0 {
+		return nil, fmt.Errorf("empty jobnik name")
+	}
+
+	jbn := new(guard)
+	return jbn.tryCreate(name)
+}
+
+// In order to allow indirect creation:
+// 1 - 	JobnikFactory should be provided for every jobnik in the process
+// 2 - 	JobnikFactory should be registered before creation. Usually it will be
+//		done within init()
+//
+//	 func init() {
+//			jobnik.RegisterFactory("CopyFiles", cpfFactory)
+//		}
+
+// Provided by jobnik developer
+type JobnikFactory func() (Jobnik, error)
+
+// Store factory for further usage by NewJobnik
+func RegisterFactory(name string, fact JobnikFactory) {
+	storeFactory(name, fact)
 }
