@@ -20,10 +20,11 @@ func init() {
 }
 
 type downloader struct {
+	conf serverConfig
 }
 
-func (dl *downloader) InitOnce(_ string) error {
-	return nil
+func (dl *downloader) InitOnce(js string) error {
+	return dl.conf.unmarshall(js)
 }
 
 func (dl *downloader) FinishOnce() error {
