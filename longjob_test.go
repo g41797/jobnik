@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/g41797/jobnik"
 )
@@ -59,7 +60,24 @@ func (jh *longJobHandler) Process(cncl context.Context, job jobnik.Job) (jobnik.
 		jh.setDefaults()
 		return jobnik.JobStatus{}, err
 	}
-	return jobnik.JobStatus{}, fmt.Errorf("ProcessLongJob is not implemented yet")
+
+	for i := 0; i < jh.Loops; i++ {
+
+		select {
+		// see https://stackoverflow.com/questions/17573190/how-to-multiply-duration-by-integer
+		case <-time.After(time.Duration(jh.Slpmls) * time.Millisecond):
+			continue
+		case <-cncl.Done():
+			jst := jobnik.JobStatus{
+				UID:      job.UID(),
+				State:    jobnik.Cancelled,
+				Addendum: fmt.Sprintf("Done %d loops", i)}
+			return jst, nil
+		}
+
+	}
+
+	return jobnik.JobStatus{job.UID(), jobnik.Finished, fmt.Sprintf("Done %d loops", jh.Loops)}, nil
 }
 
 //----------------------------------------------
@@ -113,4 +131,30 @@ func TestProcess(t *testing.T) {
 	if jbst.State != jobnik.Finished {
 		t.Errorf("wrong job state %s ", jbst.State)
 	}
+
+	//----------------------------------------------
+	// Useful links for context cancel
+	//----------------------------------------------
+	// https://www.technicalfeeder.com/2023/01/golang-how-to-differentiate-between-context-cancel-and-timeout/
+	// https://stackoverflow.com/questions/70042646/best-practices-on-go-context-cancelation-functions
+
+	ctx, cancel := context.WithCancel(context.Background())
+	recv := make(chan jobnik.JobStatus)
+	procInLoop := func(done chan jobnik.JobStatus) {
+		jbst, _ := jbnk.Process(ctx, job)
+		done <- jbst
+	}
+
+	go procInLoop(recv)
+
+	time.Sleep(time.Duration(1000) * time.Millisecond)
+
+	cancel()
+
+	jbst = <-recv
+
+	if jbst.State != jobnik.Cancelled {
+		t.Errorf("wrong job state %s ", jbst.State)
+	}
+
 }
