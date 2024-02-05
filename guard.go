@@ -96,14 +96,18 @@ func (grd *guard) Process(cncl context.Context, job Job) (JobStatus, error) {
 
 func (grd *guard) FinishOnce() error {
 	if grd == nil {
-		return fmt.Errorf("FinishOnce nil guard")
+		return nil
 	}
 
 	grd.lock.Lock()
 	defer grd.lock.Unlock()
 
 	if grd.jbnk == nil {
-		return fmt.Errorf("jobnik was not created")
+		return nil
+	}
+
+	if grd.state == initallowed {
+		return nil
 	}
 
 	if grd.state != processfinishallowed {
