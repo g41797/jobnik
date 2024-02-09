@@ -33,6 +33,7 @@ type Jobnik interface {
 	// https://www.sohamkamani.com/golang/context/
 	// https://www.willem.dev/articles/context-cancellation-explained/
 	// https://www.willem.dev/articles/context-todo-or-background/
+	// If ctx is not initialized, context.Background() will be used
 	//
 	// error is returned only for wrong arguments, e.g. failure of
 	// de-marshalling of JSON job payload, for this case content of returned JobStatus does not matter.

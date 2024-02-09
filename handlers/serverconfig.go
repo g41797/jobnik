@@ -6,12 +6,10 @@ import (
 )
 
 type serverConfig struct {
-	Addr string `json:"listenonaddr"`
 	Root string `json:"rootfolder"`
 }
 
 func (sc *serverConfig) setDefault() {
-	sc.Addr = ":8080"
 	sc.Root = "./"
 }
 

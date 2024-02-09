@@ -91,6 +91,10 @@ func (grd *guard) Process(ctx context.Context, job Job) (JobStatus, error) {
 		return JobStatus{}, fmt.Errorf("Process disabled for %s", grd.state.String())
 	}
 
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	return grd.jbnk.Process(ctx, job)
 }
 

@@ -15,7 +15,7 @@ func main() {
 	dlr, _ := jobnik.NewJobnik("DownloadFiles")
 	defer dlr.FinishOnce()
 
-	cnfstr, err := configs.ReadFile("_configs/server.json")
+	cnfstr, err := configs.ReadFile("_configs/downloader.json")
 	if err != nil {
 		fmt.Print(err)
 		return
