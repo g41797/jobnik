@@ -75,7 +75,7 @@ func (grd *guard) InitOnce(jsc string) error {
 	return nil
 }
 
-func (grd *guard) Process(cncl context.Context, job Job) (JobStatus, error) {
+func (grd *guard) Process(ctx context.Context, job Job) (JobStatus, error) {
 	if grd == nil {
 		return JobStatus{}, fmt.Errorf("Process nil guard")
 	}
@@ -91,7 +91,7 @@ func (grd *guard) Process(cncl context.Context, job Job) (JobStatus, error) {
 		return JobStatus{}, fmt.Errorf("Process disabled for %s", grd.state.String())
 	}
 
-	return grd.jbnk.Process(cncl, job)
+	return grd.jbnk.Process(ctx, job)
 }
 
 func (grd *guard) FinishOnce() error {

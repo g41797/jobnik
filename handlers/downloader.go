@@ -31,6 +31,6 @@ func (dl *downloader) FinishOnce() error {
 	return nil
 }
 
-func (dl *downloader) Process(cncl context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
+func (dl *downloader) Process(ctx context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
 	return jobnik.JobStatus{}, fmt.Errorf("Process for %s is not implemented", downloaderJobnikName)
 }

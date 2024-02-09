@@ -27,13 +27,18 @@ type Jobnik interface {
 	FinishOnce() error
 
 	// Process Job
-	// cncl used for external cancel of running job.
-	// how to use it see https://www.sohamkamani.com/golang/context/
+	//
+	// ctx used for external cancel of running job.
+	// how to use it see:
+	// https://www.sohamkamani.com/golang/context/
+	// https://www.willem.dev/articles/context-cancellation-explained/
+	// https://www.willem.dev/articles/context-todo-or-background/
+	//
 	// error is returned only for wrong arguments, e.g. failure of
 	// de-marshalling of JSON job payload, for this case content of returned JobStatus does not matter.
 	// Failure or Cancel are valid states. It should be reflected in JobStatus.
 	// error for these cases should be nil
-	Process(cncl context.Context, job Job) (JobStatus, error)
+	Process(ctx context.Context, job Job) (JobStatus, error)
 }
 
 // Don't create jobnik direct and don't export it from the package.

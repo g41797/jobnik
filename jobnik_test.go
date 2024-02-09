@@ -26,7 +26,7 @@ func init() {
 	jobnik.RegisterFactory("loopTillCancel", jobHandlerFactory)
 }
 
-type subHandler func(cncl context.Context, job jobnik.Job) (jobnik.JobStatus, error)
+type subHandler func(ctx context.Context, job jobnik.Job) (jobnik.JobStatus, error)
 
 type jobHandler struct {
 	cnf  config
@@ -58,7 +58,7 @@ func (jh *jobHandler) FinishOnce() error {
 	return nil
 }
 
-func (jh *jobHandler) Process(cncl context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
+func (jh *jobHandler) Process(ctx context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
 	if job == nil {
 		err := fmt.Errorf("empty job")
 		jh.logError(err)
@@ -76,14 +76,14 @@ func (jh *jobHandler) Process(cncl context.Context, job jobnik.Job) (jobnik.JobS
 			Addendum: fmt.Sprintf("%s is not supported", actnm)}, nil
 	}
 
-	return acthnd(cncl, job)
+	return acthnd(ctx, job)
 }
 
-func (jh *jobHandler) printAttributes(cncl context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
+func (jh *jobHandler) printAttributes(ctx context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
 	return jobnik.JobStatus{}, fmt.Errorf("printAttributes is not implemented")
 }
 
-func (jh *jobHandler) loopTillCancel(cncl context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
+func (jh *jobHandler) loopTillCancel(ctx context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
 	return jobnik.JobStatus{}, fmt.Errorf("loopTillCancel is not implemented")
 }
 

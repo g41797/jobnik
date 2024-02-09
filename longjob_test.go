@@ -44,7 +44,7 @@ func (jh *longJobHandler) FinishOnce() error {
 	return nil
 }
 
-func (jh *longJobHandler) Process(cncl context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
+func (jh *longJobHandler) Process(ctx context.Context, job jobnik.Job) (jobnik.JobStatus, error) {
 	if job == nil {
 		err := fmt.Errorf("empty job")
 		return jobnik.JobStatus{}, err
@@ -67,7 +67,7 @@ func (jh *longJobHandler) Process(cncl context.Context, job jobnik.Job) (jobnik.
 		// see https://stackoverflow.com/questions/17573190/how-to-multiply-duration-by-integer
 		case <-time.After(time.Duration(jh.Slpmls) * time.Millisecond):
 			continue
-		case <-cncl.Done():
+		case <-ctx.Done():
 			jst := jobnik.JobStatus{
 				UID:      job.UID(),
 				State:    jobnik.Cancelled,
