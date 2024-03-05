@@ -1,0 +1,6 @@
+github.com/g41797/kissngoqueue v0.1.5 h1:UrnpxbjOnTnKj/EqpbLA9LjhYkHjnLWMZQqsz3AOBG8=
+github.com/g41797/kissngoqueue v0.1.5/go.mod h1:c1mGfrNWfEP2cHeX04Iji8qYGQevvUmZw5SPZM5M9Cs=
+github.com/g41797/sputnik v0.0.21 h1:+nIr3o5t7P3H/blUKANVay7/S4ziLsacLQ0sIY6k7cQ=
+github.com/g41797/sputnik v0.0.21/go.mod h1:LZls2fb5MC8TtSioolMtmKpnWHmFR6mg9zjTmynukw4=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
