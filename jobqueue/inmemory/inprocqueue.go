@@ -13,10 +13,8 @@ import (
 	"github.com/google/uuid"
 )
 
-const INMEMORYQUEUE = "inmemoryqueue"
-
 func init() {
-	jobnik.RegisterJobQueueFactory(INMEMORYQUEUE, queueFactory)
+	jobnik.RegisterJobQueueFactory(jobnik.INMEMORYQUEUE, queueFactory)
 }
 
 func queueFactory() (jobnik.JobQueue, error) {
@@ -48,7 +46,11 @@ func (q *inprocqueue) Submit(jo jobnik.JobOrder) (jobnik.JobStatus, error) {
 	job := new(jobnik.DefaultJob)
 
 	job.Name = jo.Handler()
+
+	job.Atrbs = make([]jobnik.JobAttribute, len(jo.Attributes()))
 	copy(job.Atrbs, jo.Attributes())
+
+	job.Pld = make([]byte, len(jo.Payload()))
 	copy(job.Pld, jo.Payload())
 
 	uid := uuid.New().String()
@@ -161,8 +163,10 @@ func (q *inprocqueue) allowRecv() error {
 }
 
 func (q *inprocqueue) stopRecv() {
-	close(q.trg)
-	q.trg = nil
+	if q.trg != nil {
+		close(q.trg)
+		q.trg = nil
+	}
 }
 
 func (q *inprocqueue) waitRecv() {
@@ -171,13 +175,23 @@ func (q *inprocqueue) waitRecv() {
 	defer q.lock.Unlock()
 	q.stopRecv()
 
-	if q.rcv == nil {
+	if (q.rcv == nil) || job == nil {
 		return
 	}
 
-	if job != nil {
-		q.rcv(job)
-	}
+	q.states.Store(job.UID(), jobnik.InProcess)
+
+	q.rcv(job)
+
+	return
+}
+
+func (q *inprocqueue) Stop() {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+	q.stopRecv()
+
+	q.Disconnect()
 
 	return
 }

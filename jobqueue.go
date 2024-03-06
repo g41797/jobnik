@@ -38,6 +38,7 @@ type JobQueue interface {
 	sputnik.ServerConnector
 	Submitter
 	Receiver
+	Stop()
 }
 
 type JobQueueFactory func() (JobQueue, error)

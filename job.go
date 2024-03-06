@@ -90,9 +90,9 @@ type JobOrder interface {
 }
 
 // Job - unit of processing
-// Pay attention - you cannot get JobStatus directly from
-// Job itself
 type Job interface {
-	JobStatus
+	UID() string
 	JobOrder
+	To(m sputnik.Msg) error
+	From(m sputnik.Msg) error
 }

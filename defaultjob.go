@@ -3,7 +3,11 @@
 
 package jobnik
 
-import "github.com/g41797/sputnik"
+import (
+	"fmt"
+
+	"github.com/g41797/sputnik"
+)
 
 type DefaultJobOrder struct {
 	Name  string
@@ -40,6 +44,34 @@ func (jo *DefaultJobStatus) StatusFrom(m sputnik.Msg) error { return nil }
 type DefaultJob struct {
 	DefaultJobStatus
 	DefaultJobOrder
+}
+
+func (j *DefaultJob) To(m sputnik.Msg) error {
+
+	if err := j.OrderTo(m); err != nil {
+		return err
+	}
+
+	m["UID"] = j.Uid
+
+	return nil
+}
+
+func (j *DefaultJob) From(m sputnik.Msg) error {
+
+	if err := j.OrderFrom(m); err != nil {
+		return err
+	}
+
+	val, exists := m["UID"]
+
+	if !exists {
+		return fmt.Errorf("uid does not exist in the message")
+	}
+
+	j.Uid = val.(string)
+
+	return nil
 }
 
 var _ Job = &DefaultJob{}
