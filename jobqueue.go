@@ -4,7 +4,6 @@
 package jobnik
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -25,8 +24,13 @@ type Submitter interface {
 }
 
 type Receiver interface {
-	Receive(ctx context.Context) (Job, error)
+	// Register receive callback
+	OnReceive(rcv func(j Job)) error
 
+	// Allows to receive next job from the queue
+	// Not accumulated - 100 Acks allow 1 receive :-(
+	// js may be nil (at lest it's nil for the first receive)
+	// Informs queue about changed job status (for not nil)
 	Ack(js JobStatus) error
 }
 

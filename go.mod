@@ -8,3 +8,5 @@ require (
 )
 
 require github.com/g41797/kissngoqueue v0.1.5
+
+replace github.com/g41797/kissngoqueue => ../kissngoqueue

@@ -4,7 +4,6 @@
 package inmemory
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
@@ -29,16 +28,20 @@ func queueFactory() (jobnik.JobQueue, error) {
 
 var _ jobnik.JobQueue = &inprocqueue{}
 
+// Non production code, used for the development/testing within one process
 type inprocqueue struct {
 	lock sync.Mutex
 	sputnik.DummyConnector
 	q      *kissngoqueue.Queue[jobnik.Job]
 	states sync.Map
+	rcv    func(j jobnik.Job)
+	trg    chan struct{}
 }
 
 func (q *inprocqueue) Submit(jo jobnik.JobOrder) (jobnik.JobStatus, error) {
 
 	if !q.IsConnected() {
+		q.stopRecv()
 		return nil, fmt.Errorf("not connected")
 	}
 
@@ -72,6 +75,7 @@ func (q *inprocqueue) Submit(jo jobnik.JobOrder) (jobnik.JobStatus, error) {
 func (q *inprocqueue) Check(js jobnik.JobStatus) (jobnik.JobStatus, error) {
 
 	if !q.IsConnected() {
+		q.stopRecv()
 		return nil, fmt.Errorf("not connected")
 	}
 
@@ -89,18 +93,34 @@ func (q *inprocqueue) Check(js jobnik.JobStatus) (jobnik.JobStatus, error) {
 	return jst, nil
 }
 
-func (q *inprocqueue) Receive(ctx context.Context) (jobnik.Job, error) {
+func (q *inprocqueue) OnReceive(rcv func(j jobnik.Job)) error {
+
 	if !q.IsConnected() {
-		return nil, fmt.Errorf("not connected")
+		q.stopRecv()
+		return fmt.Errorf("not connected")
 	}
 
-	return nil, nil
+	q.lock.Lock()
+	defer q.lock.Unlock()
+
+	q.rcv = rcv
+
+	return nil
 }
 
 func (q *inprocqueue) Ack(js jobnik.JobStatus) error {
 
 	if !q.IsConnected() {
+		q.stopRecv()
 		return fmt.Errorf("not connected")
+	}
+
+	if err := q.allowRecv(); err != nil {
+		return err
+	}
+
+	if js == nil {
+		return nil
 	}
 
 	state, exists := q.states.Load(js.UID())
@@ -119,4 +139,45 @@ func (q *inprocqueue) Ack(js jobnik.JobStatus) error {
 	}
 
 	return nil
+}
+
+func (q *inprocqueue) allowRecv() error {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+
+	if q.rcv == nil {
+		return fmt.Errorf("wrong flow")
+	}
+
+	if q.trg != nil {
+		return nil
+	}
+
+	q.trg = make(chan struct{}, 1)
+
+	go q.waitRecv()
+
+	return nil
+}
+
+func (q *inprocqueue) stopRecv() {
+	close(q.trg)
+	q.trg = nil
+}
+
+func (q *inprocqueue) waitRecv() {
+	job, _ := q.q.WaitMT(q.trg)
+	q.lock.Lock()
+	defer q.lock.Unlock()
+	q.stopRecv()
+
+	if q.rcv == nil {
+		return
+	}
+
+	if job != nil {
+		q.rcv(job)
+	}
+
+	return
 }
